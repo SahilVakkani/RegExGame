@@ -2,7 +2,7 @@
 
 A single-page, browser-only game that gives you one cybersecurity-themed value a day — an IP address, a hash, a MAC address, a CVE ID, and more — and asks you to write a regular expression that correctly matches it. No backend, no build step: it's one `index.html` file you can open locally or host for free on GitHub Pages.
 
-**Live demo:** `https://<your-username>.github.io/<repo-name>/`
+**Live demo:** `https://sahilvakkani.github.io/RegExGame`
 
 ## How it works
 
@@ -33,7 +33,7 @@ Result: `3/8` — matches `256.1.1.1` and `1.2.3.400`, which it shouldn't (each 
 **Attempt 2:** `((25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)`
 Result: `8/8` — solved in 2 tries.
 
-**Post-game note:** the winning pattern also gets checked against a couple of edge cases, e.g. `192.168.1.1/24` (a CIDR suffix) — a nudge to think about whether your pattern should reject inputs like that too.
+**Post-game note:** the winning pattern also gets checked against a couple of edge cases, e.g. `192.168.1.1/24` (a CIDR suffix) a nudge to think about whether your pattern should reject inputs like that too.
 
 ## Run it locally
 
@@ -44,12 +44,6 @@ open index.html      # macOS
 start index.html     # Windows
 xdg-open index.html  # Linux
 ```
-
-## Deploy on GitHub Pages
-
-1. Upload `index.html` to a public GitHub repo.
-2. Go to **Settings → Pages**, set Source to **Deploy from a branch**, branch `main`, folder `/ (root)`.
-3. Save, wait ~30–60 seconds, and your game is live at `https://<your-username>.github.io/<repo-name>/`.
 
 ## Tech
 
