@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Daily RegEx Challenge — Cybersecurity Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F5F7FA;
+    --panel: #FFFFFF;
+    --panel-2: #EEF1F5;
+    --border: #D7DEE2;
+    --text: #1B2430;
+    --muted: #5B6572;
+    --cyan: #0E7C86;
+    --green: #1A7F37;
+    --green-bg: #DAF5E2;
+    --red: #CF222E;
+    --red-bg: #FBE1DF;
+    --amber-bg: #FCEFD2;
+    --amber: #8A6D00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0D1117;
+      --panel: #131A24;
+      --panel-2: #182233;
+      --border: #23303F;
+      --text: #D7DEE7;
+      --muted: #8894A3;
+      --cyan: #4FD1C5;
+      --green: #3FB950;
+      --green-bg: #103821;
+      --red: #F85149;
+      --red-bg: #3B1618;
+      --amber-bg: #3A2F10;
+      --amber: #E8B339;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0D1117;
+    --panel: #131A24;
+    --panel-2: #182233;
+    --border: #23303F;
+    --text: #D7DEE7;
+    --muted: #8894A3;
+    --cyan: #4FD1C5;
+    --green: #3FB950;
+    --green-bg: #103821;
+    --red: #F85149;
+    --red-bg: #3B1618;
+    --amber-bg: #3A2F10;
+    --amber: #E8B339;
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .mono { font-family: 'JetBrains Mono', 'SF Mono', Consolas, monospace; }
+
+  #app {
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 22px 16px 60px;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+  }
+  header h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+  header .tagline {
+    font-size: 12.5px;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .statusline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .statusline b { color: var(--text); }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .category-name {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .prompt {
+    font-size: 14.5px;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .target-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+    margin-bottom: 6px;
+    letter-spacing: 0.02em;
+  }
+  .target-box {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    background: var(--panel-2);
+    border: 1px dashed var(--border);
+    border-radius: 5px;
+    padding: 10px 12px;
+    word-break: break-all;
+    color: var(--text);
+    margin-bottom: 16px;
+  }
+
+  .examples {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 480px) {
+    .examples { grid-template-columns: 1fr; }
+  }
+  .example-col-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+  .example-col-label.good { color: var(--green); }
+  .example-col-label.bad { color: var(--red); }
+  .example-list {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .example-list div {
+    background: var(--panel-2);
+    border-radius: 4px;
+    padding: 5px 8px;
+    word-break: break-all;
+  }
+
+  .input-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .prompt-prefix {
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-right: none;
+    border-radius: 5px 0 0 5px;
+    color: var(--cyan);
+    font-size: 14px;
+  }
+  #patternInput {
+    flex: 1;
+    min-width: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14.5px;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-left: none;
+    padding: 10px 10px;
+    outline: none;
+    border-radius: 0;
+  }
+  #patternInput:focus { box-shadow: inset 0 0 0 1px var(--cyan); }
+  #patternInput:disabled { opacity: .55; }
+  #submitBtn {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--cyan);
+    color: #04211F;
+    border: none;
+    padding: 0 18px;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #submitBtn:disabled { opacity: .4; cursor: not-allowed; }
+  #submitBtn:not(:disabled):hover { filter: brightness(1.08); }
+
+  .error-msg {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: var(--red);
+    margin-top: 8px;
+    min-height: 14px;
+  }
+
+  .attempts {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  .attempt-row {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 9px 11px;
+    background: var(--panel-2);
+    font-size: 13px;
+  }
+  .attempt-row.correct { border-color: var(--green); }
+  .attempt-row.wrong { border-color: var(--border); }
+  .attempt-row.errored { border-color: var(--red); }
+  .attempt-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+  .attempt-pattern {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .attempt-verdict {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .attempt-verdict.ok { color: var(--green); }
+  .attempt-verdict.no { color: var(--muted); }
+  .attempt-detail {
+    font-size: 12.5px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .attempt-detail b { color: var(--text); }
+
+  .result-banner {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 5px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .result-banner.win { background: var(--green-bg); color: var(--green); }
+  .result-banner.lose { background: var(--red-bg); color: var(--red); }
+
+  .reveal {
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+  .reveal h3 {
+    font-size: 14px;
+    margin: 0 0 8px;
+  }
+  .canonical-box {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    word-break: break-all;
+    color: var(--cyan);
+  }
+  .explain {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .grading-item {
+    background: var(--panel-2);
+    border-radius: 5px;
+    padding: 9px 11px;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .grading-item .g-str {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+  }
+  .grading-item .g-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    margin-left: 6px;
+  }
+  .grading-item .g-note {
+    color: var(--muted);
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+  .grading-ok {
+    font-size: 13.5px;
+    color: var(--green);
+  }
+
+  .come-back {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 16px;
+  }
+
+  .howto {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <h1>Daily RegEx Challenge</h1>
+    <div class="tagline">cybersecurity edition — one value a day</div>
+  </header>
+
+  <div class="statusline">
+    <span>PUZZLE <b id="puzzleNum">#0</b></span>
+    <span id="dateLine"></span>
+  </div>
+
+  <div class="howto">Read the question, write one regular expression that satisfies it, and submit. You have <b class="mono" style="color:var(--text)">6 tries</b>  keep adjusting your pattern until every example checks out, or you run out of tries. Either way, you'll get feedback on your answer and a clean reference solution at the end.</div>
+
+  <div class="card" id="puzzleCard">
+    <div class="category-name" id="categoryName"></div>
+    <div class="prompt" id="promptText"></div>
+
+    <div class="target-label">TODAY'S VALUE</div>
+    <div class="target-box mono" id="targetValue"></div>
+
+    <div class="examples">
+      <div>
+        <div class="example-col-label good">SHOULD MATCH</div>
+        <div class="example-list" id="posList"></div>
+      </div>
+      <div>
+        <div class="example-col-label bad">SHOULD NOT MATCH</div>
+        <div class="example-list" id="negList"></div>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <div class="prompt-prefix">/</div>
+      <input id="patternInput" class="mono" type="text" placeholder="write your pattern here" autocomplete="off" spellcheck="false">
+      <button id="submitBtn">Submit</button>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="attempts" id="attemptsList"></div>
+
+    <div id="resultBanner"></div>
+    <div id="revealSection"></div>
+    <div class="come-back" id="comeBack" style="display:none;">Come back tomorrow for a new value.</div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var A64 = 'a'.repeat(64), F64 = 'f'.repeat(64), Z64 = '0'.repeat(64);
+  var A32 = 'a'.repeat(32), F32 = 'f'.repeat(32);
+
+  var PUZZLES = [
+    {
+      category: "IPv4 Address",
+      prompt: "Write a pattern that matches a valid IPv4 address — four dot-separated numbers, each between 0 and 255.",
+      pos: ["192.168.1.1", "8.8.8.8", "255.255.255.255", "10.0.0.255"],
+      neg: ["256.1.1.1", "192.168.1", "192.168.1.1.1", "1.2.3.400"],
+      edge: [
+        {str:"01.02.03.04", expect:false, note:"Leading zeros in octets are often treated as invalid or ambiguous — worth deciding on purpose."},
+        {str:"192.168.1.1 ", expect:false, note:"Trailing whitespace shouldn't be accepted as part of the address."},
+        {str:"192.168.1.1/24", expect:false, note:"A CIDR suffix means this is no longer a bare address."},
+        {str:"::ffff:192.168.1.1", expect:false, note:"This is an IPv6-mapped form — a plain-IPv4 pattern should reject it."}
+      ],
+      canonical: "^((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)$",
+      explain: "Each octet is capped with three alternatives covering 250-255, 200-249, and 0-199. Repeat that group three times with a trailing dot, then one final octet with no dot."
+    },
+    {
+      category: "MAC Address",
+      prompt: "Write a pattern that matches a hardware MAC address — six pairs of hex digits, separated by colons or hyphens.",
+      pos: ["00:1A:2B:3C:4D:5E", "ff:ff:ff:ff:ff:ff", "AA:BB:CC:DD:EE:FF", "00-1A-2B-3C-4D-5E"],
+      neg: ["00:1A:2B:3C:4D", "00:1A:2B:3C:4D:5G", "001A2B3C4D5E", "00:1A:2B:3C:4D:5E:6F"],
+      edge: [
+        {str:"00:1a:2b:3c:4d:5e", expect:true, note:"Lowercase hex is just as valid — check your character classes cover both cases."},
+        {str:"00:1A-2B:3C-4D:5E", expect:false, note:"Mixed separators in one address (colon and hyphen together) aren't a real MAC format."},
+        {str:"00.1A.2B.3C.4D.5E", expect:false, note:"Dot-separated MACs (Cisco style) are a different convention — decide if you want to support them too."},
+        {str:"GG:1A:2B:3C:4D:5E", expect:false, note:"'GG' isn't valid hex — every pair needs checking, not just the first."}
+      ],
+      canonical: "^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$",
+      explain: "A hex-pair-plus-separator group, repeated exactly five times, followed by one final hex pair with no trailing separator."
+    },
+    {
+      category: "SHA-256 Hash",
+      prompt: "Write a pattern that matches a SHA-256 hash — exactly 64 hexadecimal characters, nothing more or less.",
+      pos: ["e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85", A64, F64, Z64],
+      neg: [A64.slice(0,63), A64+"a", A64.slice(0,63)+"g", A32],
+      edge: [
+        {str:"E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B85", expect:true, note:"Hex is legally uppercase too."},
+        {str:A64+" ", expect:false, note:"Trailing whitespace shouldn't count — length must be exactly 64 meaningful hex characters."},
+        {str:"sha256:"+A64, expect:false, note:"Hashes are sometimes prefixed like 'sha256:...' in tool output — decide whether your pattern should reject that or strip it beforehand."},
+        {str:A64.slice(0,30)+"z"+A64.slice(31), expect:false, note:"A single non-hex character anywhere in the middle should still fail, not just at the ends."}
+      ],
+      canonical: "^[A-Fa-f0-9]{64}$",
+      explain: "Hex digits (0-9, A-F, a-f) repeated exactly 64 times — length is the whole trick here."
+    },
+    {
+      category: "MD5 Hash",
+      prompt: "Write a pattern that matches an MD5 hash — exactly 32 hexadecimal characters.",
+      pos: ["d41d8cd98f00b204e9800998ecf8427e".slice(0,32), A32, F32, "0".repeat(32)],
+      neg: [A32.slice(0,31), A32+"a", A32.slice(0,31)+"z", A64],
+      edge: [
+        {str:"D41D8CD98F00B204E9800998ECF8427E".slice(0,32), expect:true, note:"Uppercase hex should be accepted too."},
+        {str:A32+" ", expect:false, note:"Trailing whitespace shouldn't be part of a valid hash."},
+        {str:"md5:"+A32, expect:false, note:"A 'md5:' prefix sometimes shows up in tool output — decide on purpose whether to reject it."},
+        {str:A32.slice(0,15)+"z"+A32.slice(16), expect:false, note:"One bad character in the middle should still fail the whole string."}
+      ],
+      canonical: "^[A-Fa-f0-9]{32}$",
+      explain: "Same idea as SHA-256, just 32 hex characters instead of 64 — MD5 produces a shorter digest."
+    },
+    {
+      category: "Email Address",
+      prompt: "Write a pattern that matches a reasonably well-formed email address: local-part @ domain . tld",
+      pos: ["user@example.com", "john.doe@sub.domain.co", "a_b-c@my-site.org", "test123@mail.io"],
+      neg: ["user@.com", "user@domain", "@example.com", "user@example..com"],
+      edge: [
+        {str:"user+tag@example.com", expect:true, note:"Plus-addressing (user+tag@...) is common and legitimate — make sure it isn't accidentally excluded."},
+        {str:"user@ex ample.com", expect:false, note:"A space inside the domain should never be valid."},
+        {str:"user@example.c", expect:false, note:"A single-letter TLD isn't realistic — real TLDs are 2+ letters."},
+        {str:"user@[192.168.1.1]", expect:false, note:"Bracketed IP-literal domains are technically legal email syntax but rarely something you want to accept by accident."}
+      ],
+      canonical: "^[\\w.+-]+@[\\w-]+\\.[a-zA-Z]{2,}$",
+      explain: "Local part allows word characters, dots, plus and hyphen; then a literal @; then a domain of word/hyphen characters, a literal dot, and a 2+ letter TLD."
+    },
+    {
+      category: "CVE Identifier",
+      prompt: "Write a pattern that matches a CVE ID in the form CVE-YYYY-NNNN (4-digit year, 4 or more digit sequence number).",
+      pos: ["CVE-2023-1234", "CVE-1999-0001", "CVE-2021-44228", "CVE-2024-99999"],
+      neg: ["CVE-23-1234", "CVE-2023-123", "cve-2023-1234", "CVE2023-1234"],
+      edge: [
+        {str:"CVE-2021-0001", expect:true, note:"Leading zeros in the sequence number are valid and common for early entries in a year."},
+        {str:"CVE-2023-1234 ", expect:false, note:"Trailing space shouldn't sneak through."},
+        {str:"CVE-2023-1234-extra", expect:false, note:"Nothing should be allowed after the sequence number."},
+        {str:"CVE-10000-1234", expect:false, note:"A 5-digit year isn't valid — the year is always exactly 4 digits."}
+      ],
+      canonical: "^CVE-\\d{4}-\\d{4,}$",
+      explain: "Literal 'CVE-', exactly 4 digits for the year, a literal dash, then 4 or more digits — the sequence number has grown past 4 digits in some years, so don't cap it."
+    },
+    {
+      category: "HTTP(S) URL",
+      prompt: "Write a pattern that matches a full http:// or https:// URL, with an optional port and path.",
+      pos: ["https://example.com", "http://sub.example.co.uk/path?query=1", "https://192.168.1.1:8080/path", "http://test.io"],
+      neg: ["example.com", "ftp://example.com", "http//example.com", "https:/example.com"],
+      edge: [
+        {str:"https://example.com/", expect:true, note:"A URL with just a trailing slash and no further path should still count."},
+        {str:"HTTPS://EXAMPLE.COM", expect:true, note:"Scheme keywords are case-insensitive in real URLs — decide if you want to allow uppercase too."},
+        {str:"javascript:alert(1)", expect:false, note:"A javascript: URI isn't an http(s) URL — a classic distinction to get right if this feeds any security tooling."},
+        {str:"//example.com/path", expect:false, note:"Protocol-relative URLs (no scheme at all) are a different case — decide if you want to require an explicit scheme."}
+      ],
+      canonical: "^https?:\\/\\/[\\w.-]+(:\\d+)?(\\/[\\w\\-./?%&=]*)?$",
+      explain: "'http' with an optional 's', then a literal '://', a host, an optional ':port', and an optional path/query section."
+    },
+    {
+      category: "Port Number",
+      prompt: "Write a pattern that matches a valid TCP/UDP port number: an integer from 0 to 65535, no leading zeros.",
+      pos: ["0", "80", "443", "65535"],
+      neg: ["65536", "-1", "port80", "99999"],
+      edge: [
+        {str:"00080", expect:false, note:"Leading zeros aren't valid for a port number — '00080' isn't the same token as '80'."},
+        {str:"65535 ", expect:false, note:"Trailing whitespace shouldn't be accepted."},
+        {str:"+80", expect:false, note:"A leading plus sign isn't valid for a port number."}
+      ],
+      canonical: "^(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|[1-9]\\d{0,3}|0)$",
+      explain: "Numeric ranges are handled top-down: 65530-65535, then 65500-65529, then 65000-65499, then 60000-64999, then 10000-59999, then 1-9999, then zero on its own."
+    },
+    {
+      category: "Base64 String",
+      prompt: "Write a pattern that matches a structurally valid Base64-encoded string (used constantly to smuggle payloads).",
+      pos: ["SGVsbG8gV29ybGQ=", "YWJjZA==", "VGVzdA==", "QUJDRA=="],
+      neg: ["SGVsbG8=V29ybGQ", "This is not base64!!", "SGVsbG8", "12345"],
+      edge: [
+        {str:"SGVsbG8gV29ybGQ", expect:false, note:"Missing padding — standard Base64 needs '=' to round out the final block."},
+        {str:"aGVsbG8vd29ybGQrZm9v", expect:true, note:"Standard Base64 uses '+' and '/' as its 62nd/63rd characters — make sure your class covers both, not just alphanumerics."},
+        {str:"aGVsbG8_d29ybGQtZm9v", expect:false, note:"This is Base64URL (uses '-' and '_' instead of '+' and '/') — a different variant worth supporting separately if you need it."}
+      ],
+      canonical: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$",
+      explain: "Base64 is built from complete 4-character blocks; only the very last block may be padded with '=' (one or two of them), never in the middle."
+    },
+    {
+      category: "JWT Token",
+      prompt: "Write a pattern that matches a JSON Web Token: three base64url segments separated by dots.",
+      pos: ["abc.def.ghi", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0In0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c", "a.b.c", "header123.payload456.signature789"],
+      neg: ["abc.def", "abc.def.ghi.jkl", "abc..ghi", "abc.def.ghi!"],
+      edge: [
+        {str:"abc.def.", expect:false, note:"An empty final segment shouldn't count as a real token."},
+        {str:"Bearer abc.def.ghi", expect:false, note:"The raw token pattern shouldn't include an 'Authorization: Bearer ' prefix — that's a separate concern."},
+        {str:"abc.def.ghi.jkl.mno", expect:false, note:"JWTs are always exactly three segments, never five."}
+      ],
+      canonical: "^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$",
+      explain: "Exactly three non-empty segments of base64url-safe characters (letters, digits, - and _), separated by exactly two literal dots."
+    },
+    {
+      category: "Private IPv4 (RFC 1918)",
+      prompt: "Write a pattern that matches ONLY internal/private IPv4 ranges: 10.0.0.0/8, 172.16.0.0-172.31.255.255, and 192.168.0.0/16.",
+      pos: ["10.0.0.1", "10.255.255.255", "172.16.0.1", "192.168.1.1"],
+      neg: ["8.8.8.8", "172.15.0.1", "172.32.0.1", "192.169.1.1"],
+      edge: [
+        {str:"172.20.10.5", expect:true, note:"Anything in 172.16-172.31 counts, not just the boundary values 16 and 31."},
+        {str:"100.64.0.1", expect:false, note:"Carrier-grade NAT space (100.64.0.0/10) is a separate, non-RFC1918 range — usually excluded unless asked for."},
+        {str:"169.254.1.1", expect:false, note:"Link-local addresses (169.254.0.0/16) are a different reserved range, not RFC 1918 private space."},
+        {str:"192.168.256.1", expect:false, note:"Individual octets still need to stay within 0-255, even inside a private-range pattern."}
+      ],
+      canonical: "^(10\\.(?:\\d{1,3}\\.){2}\\d{1,3}|172\\.(?:1[6-9]|2\\d|3[0-1])\\.\\d{1,3}\\.\\d{1,3}|192\\.168\\.\\d{1,3}\\.\\d{1,3})$",
+      explain: "Three separate branches, one per RFC 1918 block. The tricky one is 172.16-172.31, written as 1[6-9] (16-19), 2\\d (20-29), or 3[0-1] (30-31)."
+    },
+    {
+      category: "ISO 8601 Timestamp",
+      prompt: "Write a pattern that matches a log timestamp in strict ISO 8601 form: YYYY-MM-DDTHH:MM:SSZ",
+      pos: ["2023-01-15T10:30:00Z", "1999-12-31T23:59:59Z", "2024-02-29T00:00:00Z", "2000-06-15T12:00:00Z"],
+      neg: ["2023-01-15 10:30:00", "2023-1-15T10:30:00Z", "2023-01-15T10:30:00", "23-01-15T10:30:00Z"],
+      edge: [
+        {str:"2023-01-15T10:30:00.123Z", expect:false, note:"Milliseconds are common in real logs — decide if your pattern should allow an optional '.mmm' before the Z."},
+        {str:"2023-01-15T10:30:00+05:30", expect:false, note:"A numeric timezone offset instead of 'Z' is valid ISO 8601 too — this strict pattern intentionally excludes it."},
+        {str:"2023-01-15t10:30:00z", expect:false, note:"Lowercase 't'/'z' show up sometimes — worth being explicit about whether you accept them."}
+      ],
+      canonical: "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+      explain: "Fixed digit counts everywhere (4-2-2 for the date, 2-2-2 for the time), the literal 'T' separator, and a trailing literal 'Z' for UTC."
+    },
+    {
+      category: "Username",
+      prompt: "Write a pattern that matches a username: 3-16 characters, must start with a letter, then letters/digits/underscore only.",
+      pos: ["john_doe", "admin123", "sec_analyst", "abc"],
+      neg: ["12abc", "ab", "john-doe", "_admin"],
+      edge: [
+        {str:"Admin", expect:true, note:"Uppercase letters are letters too — make sure your character classes aren't accidentally lowercase-only."},
+        {str:"abcdefghijklmnopq", expect:false, note:"Don't forget the upper length bound — this string is past 16 characters."},
+        {str:"abc ", expect:false, note:"Trailing whitespace shouldn't be part of a valid username."}
+      ],
+      canonical: "^[A-Za-z][A-Za-z0-9_]{2,15}$",
+      explain: "One required leading letter, then 2 to 15 more word characters — giving a total length of 3 to 16."
+    },
+    {
+      category: "CIDR Notation",
+      prompt: "Write a pattern that matches an IPv4 address in CIDR notation: address slash prefix-length (0-32).",
+      pos: ["192.168.1.0/24", "10.0.0.0/8", "0.0.0.0/0", "255.255.255.255/32"],
+      neg: ["192.168.1.0/33", "192.168.1.0", "192.168.1.0/-1", "300.1.1.1/24"],
+      edge: [
+        {str:"10.0.0.0/08", expect:false, note:"A leading zero on the prefix length ('08' instead of '8') usually isn't accepted."},
+        {str:"10.0.0.0/24/32", expect:false, note:"Only one slash — nothing should follow a valid prefix length."},
+        {str:"10.0.0.0 /24", expect:false, note:"A space before the slash shouldn't be allowed."}
+      ],
+      canonical: "^((25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\.){3}(25[0-5]|2[0-4]\\d|1\\d{2}|[1-9]?\\d)\\/(3[0-2]|[12]?\\d)$",
+      explain: "The same bounded-octet pattern as an IPv4 address, plus a literal slash and a prefix length capped at 32 via 3[0-2] (30-32) or [12]?\\d (0-29)."
+    },
+    {
+      category: "Suspicious Executable Filename",
+      prompt: "Write a pattern that matches filenames ending in a common malware-delivery extension: .exe, .bat, .cmd, .scr, or .vbs",
+      pos: ["malware.exe", "script.bat", "dropper.scr", "payload.vbs"],
+      neg: ["document.pdf", "photo.jpg", "malware.EXE", "readme.txt"],
+      edge: [
+        {str:"invoice.js", expect:true, note:"'.js' script files are a very common malware-delivery extension too — consider whether your list should include it."},
+        {str:"malware.exe.txt", expect:false, note:"The extension has to be the very last part of the filename — a double-extension trick like this shouldn't slip through."},
+        {str:"malware .exe", expect:true, note:"Spaces are legal filename characters on most systems — decide on purpose whether to allow them in the name portion."}
+      ],
+      canonical: "^[\\w,\\s-]+\\.(exe|bat|cmd|scr|vbs)$",
+      explain: "Any filename-safe characters, then a literal dot, then one of the risky extensions captured in a group. This reference is case-sensitive by design — extend the character classes if you also want to catch '.EXE'."
+    },
+    {
+      category: "Domain Name",
+      prompt: "Write a pattern that matches a domain name: one or more dot-separated labels, no leading hyphens, valid TLD.",
+      pos: ["example.com", "my-site.co.uk", "sub.domain.org", "test123.io"],
+      neg: ["-example.com", "example", "example..com", "exa_mple.com"],
+      edge: [
+        {str:"xn--80ak6aa92e.com", expect:true, note:"Punycode-encoded internationalized domains (xn--...) are completely valid ASCII domain names — easy to forget these exist."},
+        {str:"a.co", expect:true, note:"Very short domains are valid too, not just longer household names."},
+        {str:"example.com.", expect:false, note:"A trailing root dot is valid DNS syntax but often unexpected — decide on purpose whether to allow it."},
+        {str:"example.c", expect:false, note:"A single-letter TLD isn't realistic for a real domain."}
+      ],
+      canonical: "^[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z]{2,})+$",
+      explain: "The first label must start and end with a letter/digit (hyphens only in the middle), followed by one or more '.letters' groups for the remaining labels and TLD."
+    }
+  ];
+
+  var EPOCH = new Date(2024, 0, 1);
+  var now = new Date();
+  var dayIndex = Math.floor((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - EPOCH) / 86400000);
+  var puzzleNum = dayIndex + 1;
+  var puzzle = PUZZLES[((dayIndex % PUZZLES.length) + PUZZLES.length) % PUZZLES.length];
+  var testCases = puzzle.pos.map(function(s){ return {str:s, expect:true}; })
+                    .concat(puzzle.neg.map(function(s){ return {str:s, expect:false}; }));
+
+  var dateStr = now.toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+  var STORAGE_KEY = 'regexchallenge_' + dayIndex;
+  var MAX_ATTEMPTS = 6;
+
+  var state = { attempts: [], finished: false, won: false };
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) state = JSON.parse(saved);
+  } catch(e) {}
+
+  function saveState() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  var el = {
+    puzzleNum: document.getElementById('puzzleNum'),
+    dateLine: document.getElementById('dateLine'),
+    categoryName: document.getElementById('categoryName'),
+    promptText: document.getElementById('promptText'),
+    targetValue: document.getElementById('targetValue'),
+    posList: document.getElementById('posList'),
+    negList: document.getElementById('negList'),
+    patternInput: document.getElementById('patternInput'),
+    submitBtn: document.getElementById('submitBtn'),
+    errorMsg: document.getElementById('errorMsg'),
+    attemptsList: document.getElementById('attemptsList'),
+    resultBanner: document.getElementById('resultBanner'),
+    revealSection: document.getElementById('revealSection'),
+    comeBack: document.getElementById('comeBack')
+  };
+
+  el.puzzleNum.textContent = '#' + puzzleNum;
+  el.dateLine.textContent = dateStr;
+  el.categoryName.textContent = puzzle.category;
+  el.promptText.textContent = puzzle.prompt;
+  el.targetValue.textContent = puzzle.pos[0];
+  el.posList.innerHTML = puzzle.pos.map(function(s){ return '<div>' + escapeHtml(s) + '</div>'; }).join('');
+  el.negList.innerHTML = puzzle.neg.map(function(s){ return '<div>' + escapeHtml(s) + '</div>'; }).join('');
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function gradeAttempt(patternStr) {
+    var re;
+    try {
+      re = new RegExp('^(?:' + patternStr + ')$');
+    } catch (err) {
+      return { error: err.message };
+    }
+    var missed = [], falseMatches = [], passCount = 0;
+    testCases.forEach(function(tc){
+      var matched;
+      try { matched = re.test(tc.str); } catch(e) { matched = false; }
+      if (matched === tc.expect) { passCount++; }
+      else if (tc.expect && !matched) { missed.push(tc.str); }
+      else { falseMatches.push(tc.str); }
+    });
+    return { passCount: passCount, total: testCases.length, missed: missed, falseMatches: falseMatches, allPass: passCount === testCases.length, regex: re };
+  }
+
+  function gradeEdgeCases(re) {
+    var notes = [];
+    puzzle.edge.forEach(function(ec){
+      var matched;
+      try { matched = re.test(ec.str); } catch(e) { matched = false; }
+      if (matched !== ec.expect) {
+        notes.push({ str: ec.str, matched: matched, note: ec.note });
+      }
+    });
+    return notes;
+  }
+
+  function renderAttempts() {
+    el.attemptsList.innerHTML = '';
+    state.attempts.forEach(function(a, i){
+      var row = document.createElement('div');
+      row.className = 'attempt-row ' + (a.error ? 'errored' : (a.allPass ? 'correct' : 'wrong'));
+
+      var head = document.createElement('div');
+      head.className = 'attempt-head';
+      var patt = document.createElement('div');
+      patt.className = 'attempt-pattern mono';
+      patt.textContent = 'Try ' + (i+1) + ': /' + a.pattern + '/';
+      head.appendChild(patt);
+      var verdict = document.createElement('div');
+      verdict.className = 'attempt-verdict ' + (a.error ? 'no' : (a.allPass ? 'ok' : 'no'));
+      verdict.textContent = a.error ? 'invalid pattern' : (a.allPass ? 'correct ✓' : (a.passCount + '/' + a.total));
+      head.appendChild(verdict);
+      row.appendChild(head);
+
+      var detail = document.createElement('div');
+      detail.className = 'attempt-detail';
+      if (a.error) {
+        detail.innerHTML = escapeHtml(a.error);
+      } else if (!a.allPass) {
+        var parts = [];
+        if (a.missed.length) parts.push('<b>Should match but didn\'t:</b> ' + a.missed.map(escapeHtml).join(', '));
+        if (a.falseMatches.length) parts.push('<b>Matched but shouldn\'t have:</b> ' + a.falseMatches.map(escapeHtml).join(', '));
+        detail.innerHTML = parts.join('<br>');
+      }
+      if (detail.innerHTML) row.appendChild(detail);
+
+      el.attemptsList.appendChild(row);
+    });
+  }
+
+  function renderResultAndReveal() {
+    el.resultBanner.innerHTML = '';
+    el.revealSection.innerHTML = '';
+    el.comeBack.style.display = state.finished ? 'block' : 'none';
+
+    if (!state.finished) return;
+
+    el.patternInput.disabled = true;
+    el.submitBtn.disabled = true;
+
+    var banner = document.createElement('div');
+    banner.className = 'result-banner ' + (state.won ? 'win' : 'lose');
+    banner.textContent = state.won
+      ? 'Correct! Solved in ' + state.attempts.length + ' of ' + MAX_ATTEMPTS + ' tries.'
+      : 'Out of tries for today.';
+    el.resultBanner.appendChild(banner);
+
+    var lastGood = null;
+    for (var i = state.attempts.length - 1; i >= 0; i--) {
+      if (!state.attempts[i].error) { lastGood = state.attempts[i]; break; }
+    }
+
+    var gradingHtml = '';
+    if (lastGood) {
+      var re = new RegExp('^(?:' + lastGood.pattern + ')$');
+      var edgeNotes = gradeEdgeCases(re);
+      gradingHtml += '<h3>' + (state.won ? 'How your winning pattern holds up on trickier cases' : 'How your last pattern holds up on trickier cases') + '</h3>';
+      if (edgeNotes.length === 0) {
+        gradingHtml += '<div class="grading-ok">It also handled every extra edge case we tried against it — solid work.</div>';
+      } else {
+        edgeNotes.forEach(function(n){
+          gradingHtml += '<div class="grading-item"><span class="g-str">' + escapeHtml(n.str) + '</span><span class="g-status">' +
+            (n.matched ? 'currently MATCHES' : 'currently does NOT match') + '</span><div class="g-note">' + escapeHtml(n.note) + '</div></div>';
+        });
+      }
+    }
+
+    var revealHtml = '<div class="reveal">' + gradingHtml +
+      '<h3 style="margin-top:16px;">A clean reference solution</h3>' +
+      '<div class="canonical-box">' + escapeHtml(puzzle.canonical) + '</div>' +
+      '<div class="explain">' + escapeHtml(puzzle.explain) + '</div>' +
+      '</div>';
+
+    el.revealSection.innerHTML = revealHtml;
+  }
+
+  function updateSubmitState() {
+    if (state.finished) {
+      el.patternInput.disabled = true;
+      el.submitBtn.disabled = true;
+    }
+  }
+
+  function submitAttempt() {
+    if (state.finished) return;
+    var val = el.patternInput.value.trim();
+    el.errorMsg.textContent = '';
+    if (!val) {
+      el.errorMsg.textContent = 'Type a pattern first.';
+      return;
+    }
+
+    var graded = gradeAttempt(val);
+    if (graded.error) {
+      state.attempts.push({ pattern: val, error: graded.error });
+    } else {
+      state.attempts.push({
+        pattern: val,
+        passCount: graded.passCount,
+        total: graded.total,
+        missed: graded.missed,
+        falseMatches: graded.falseMatches,
+        allPass: graded.allPass
+      });
+      if (graded.allPass) {
+        state.won = true;
+        state.finished = true;
+      }
+    }
+
+    if (!state.finished && state.attempts.length >= MAX_ATTEMPTS) {
+      state.finished = true;
+      state.won = false;
+    }
+
+    saveState();
+    el.patternInput.value = '';
+    renderAttempts();
+    renderResultAndReveal();
+    updateSubmitState();
+  }
+
+  el.submitBtn.addEventListener('click', submitAttempt);
+  el.patternInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter') submitAttempt();
+  });
+
+  renderAttempts();
+  renderResultAndReveal();
+  updateSubmitState();
+
+})();
+</script>
+</body>
+</html>
